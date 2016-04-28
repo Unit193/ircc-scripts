@@ -3,7 +3,7 @@
 
 #this bit is to tell it that it is totally cool to redirect unicode output to a file
 #from http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=415968
-import sys, codecs
+import sys, codecs, getopt
 if sys.stdout.encoding is None:
   sys.stdout = codecs.open("/dev/stdout", "w", 'utf-8')
 
@@ -11,41 +11,55 @@ cachedir = "~/.launchpadlib/cache"
 from launchpadlib.launchpad import Launchpad, EDGE_SERVICE_ROOT
 launchpad = Launchpad.login_with('People Lister', EDGE_SERVICE_ROOT, cachedir)
 
-group = launchpad.people['ubuntu-core-ops']#might be nice not to hard code this
+try:
+  opts, args = getopt.getopt(sys.argv[1:],"hdp:",["parent="])
+except getopt.GetoptError:
+  print '-d, --devel set the parent team to ubuntu-core-devel-ops'
+  print '-p, --parent <parent team>'
+  sys.exit(2)
+
+parent = "ubuntu-core-ops"
+for opt, arg in opts:
+    if opt == '-h':
+        print '-d, --devel set the parent team to ubuntu-core-devel-ops'
+        print '-p, --parent <parent team>'
+        sys.exit()
+    elif opt in ("-p", "--channel"):
+        parent = arg
+    elif opt in ("-d", "--devel"):
+        parent = "ubuntu-core-devel-ops"
+
+group = launchpad.people[parent]
 
 #print group.display_name
 memberships = group.members_details
-allmemberships={}
-#this is a dictionary of memberships, one per person, key is launchpad name (display name might not be unique). If we find a person in multiple groups the first one they joined is selected, thus the date when they first became an Ubuntu Member
+allops={}
+opsnicks={}
 
 
-for membership in memberships:
-  if not membership.member.is_team:
-#    print membership.member.display_name
-    allmemberships[membership.member.name]=membership
+for sub_team in group.members:
+  if sub_team.display_name[0]=='#':
+    for membership in sub_team.members:
+       allops[membership.web_link]=membership.display_name
 
 #the sub_teams property of the top group seems to contain all nested groups, not just the direct members so we don't need to get recursive and worry about nesting loops
-for sub_team in group.sub_teams:
-  if sub_team.display_name[0]=='#':
-    print '**** Team ****', sub_team.display_name
+for sub_team in group.members:
+  if sub_team.display_name[0]=='#' and sub_team.proposed_members:
+    print '\n==', sub_team.display_name, '=='
     for membership in sub_team.proposed_members:
-       print membership.karma, membership.web_link, membership.display_name
-
-#      #should only replace if it is an earlier membership
-#      if allmemberships.has_key(membership.member.name):
-#        if allmemberships[membership.member.name].date_joined > membership.date_joined:
-#          allmemberships[membership.member.name]=membership
-#      else:
-#        allmemberships[membership.member.name]=membership
-
-#with luck the allpeople dictionary now holds a unique list of all members
-#print len(allmemberships)
-#in theory at this point we should connect to google apps using the python API
-#search column A of the spreadsheet for the launchpad name
-#if found, move on
-#otherwise insert a row in the right place and populate it with the lp name, real name, date joined launchpad and date made an Ubuntu Member
-
-#for now just writing out in dirty old CSV format
-#for membership in allmemberships:
-#  person=allmemberships[membership].member
-#  print '"' + person.name + '","' + person.display_name + '",' + person.date_created.date().isoformat() + ',' + allmemberships[membership].date_joined.date().isoformat() +','+ person.karma.__str__()
+      try:
+        for n in membership.irc_nicknames:
+          if "freenode" in n.network.lower():
+            opsnicks[membership.web_link]=membership.display_name
+      except:
+        continue
+      if membership.web_link in allops: # Check to see if they're an OP in one of the other listed channels.
+        if membership.web_link in opsnicks:
+          print ' * link:%s[*%s*] - %s' % (membership.web_link, membership.display_name, n.nickname)
+        else:
+          print ' * link:%s[*%s*]' % (membership.web_link, membership.display_name)
+      else:
+        if membership.web_link in opsnicks:
+          print ' * link:%s[%s] - %s' % (membership.web_link, membership.display_name, n.nickname)
+        else:
+          print ' * link:%s[%s]' % (membership.web_link, membership.display_name)
