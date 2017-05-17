@@ -46,7 +46,7 @@ if opts.operators:
     opts.chanonly = True
 
 
-cachedir = "~/.launchpadlib/cache"
+cachedir = "~/.cache/launchpadlib"
 from launchpadlib.launchpad import Launchpad
 launchpad = Launchpad.login_anonymously('People Lister', 'production', cachedir, version='devel')
 

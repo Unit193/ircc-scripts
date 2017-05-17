@@ -29,7 +29,7 @@ if not users:
     sys.exit()
 
 
-cachedir = "~/.launchpadlib/cache"
+cachedir = "~/.cache/launchpadlib"
 from launchpadlib.launchpad import Launchpad
 from launchpadlib.errors import HTTPError
 launchpad = Launchpad.login_with('Ubuntu IRC Cloaks Removal Script', 'production', cachedir, version='devel')

@@ -32,7 +32,7 @@ parser.add_option('-h', '--help', action='help', help='Print this help text.')
 opts, args = parser.parse_args()
 
 
-cachedir = "~/.launchpadlib/cache"
+cachedir = "~/.cache/launchpadlib"
 from launchpadlib.launchpad import Launchpad
 launchpad = Launchpad.login_anonymously('Ubuntu IRC Cloaks Updater Script', 'production', cachedir, version='devel')
 
