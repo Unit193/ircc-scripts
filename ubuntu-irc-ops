@@ -5,7 +5,7 @@ import sys, codecs, locale
 from optparse import OptionParser
 
 # Ensure Unicode output
-if sys.version_info[0] != 3:
+if sys.version_info < (3,1):
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout)
 else:
     sys.stdout = codecs.getwriter(locale.getpreferredencoding())(sys.stdout.detach())
