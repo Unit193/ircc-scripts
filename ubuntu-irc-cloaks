@@ -61,7 +61,7 @@ def print_member(member):
     nicks = []
     try:
         for nick in member.irc_nicknames:
-            if 'freenode' in nick.network.lower():
+            if 'freenode' or 'ubuntu' in nick.network.lower():
                 nicks.append(nick.nickname)
         gone = False
     except:
