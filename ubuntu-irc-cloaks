@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys, codecs, locale
@@ -131,12 +131,12 @@ else:
             elif super_team in reference_teams:
                 team_scopes[1] = 'Reference'
                 print_super_team(super_teams[super_team])
-	    else:
+            else:
                 team_scopes[2] = 'Other'
                 if opts.all:
                     print_super_team(super_teams[super_team])
 
         if not opts.markdown:
-	    print('\nTeam scopes: ' + (', '.join(team_scopes.values()) or 'None'))
+            print('\nTeam scopes: ' + (', '.join(team_scopes.values()) or 'None'))
         else:
-	    print('\n*Team scopes*: ' + (', '.join(team_scopes.values()) or 'None'))
+            print('\n*Team scopes*: ' + (', '.join(team_scopes.values()) or 'None'))
