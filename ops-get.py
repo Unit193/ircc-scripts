@@ -19,12 +19,12 @@ parser = OptionParser(usage=usage, description=description, add_help_option=Fals
 parser.add_option('-t', '--team', help='Specify team.')
 parser.add_option('-d', '--devel', action='store_true', default=False,
                   help='Get devel team.')
-parser.add_option('-c', '--channels', dest='chanonly', action='store_true',
-                  default=False, help='Get only channel teams.')
 parser.add_option('-o', '--operators', action='store_true', default=False,
                   help='Get all operators.')
 parser.add_option('-a', '--applicants', action='store_true', default=False,
                   help='Get applicants.')
+parser.add_option('-c', '--chanonly', action='store_true',
+                  default=False, help='Get only channel teams.')
 parser.add_option('-m', '--markdown', action='store_true', default=False,
                   help='Print as Markdown.')
 parser.add_option('-h', '--help', action='help', help='Print this help text.')
@@ -48,12 +48,20 @@ if opts.operators:
 
 cachedir = "~/.cache/launchpadlib"
 from launchpadlib.launchpad import Launchpad
-launchpad = Launchpad.login_anonymously('People Lister', 'production', cachedir, version='devel')
+launchpad = Launchpad.login_anonymously('Ubuntu IRC Lister', 'production',
+                cachedir, version='devel')
+
+
+def drop_ops(teamname):
+    if teamname.startswith('irc-') and teamname.endswith('-ops'):
+        return teamname.rsplit('-', 1)[0]
+    return teamname
 
 
 try:
     team = launchpad.people[team]
-except:
+except KeyError:
+    print("The team '{}' does not exist on Launchpad.".format(team))
     sys.exit(1)
 
 teams = {team.name: team}
@@ -63,13 +71,13 @@ for sub_team in team.sub_teams:
 
 if opts.applicants:
     allops = []
-    for team in teams.values():
+    for team in list(teams.values()):
         if not (opts.chanonly and team.display_name[0] != '#'):
             for member in team.members:
                 allops.append(member.name)
 
 
-for team in sorted(teams):
+for team in sorted(teams, key=drop_ops):
     team = teams[team]
 
     if not (opts.chanonly and team.display_name[0] != '#'):
@@ -93,7 +101,8 @@ for team in sorted(teams):
             nicks = []
             try:
                 for nick in member.irc_nicknames:
-                    if 'freenode' in nick.network.lower():
+                    network = nick.network.lower()
+                    if 'libera' in network:
                         nicks.append(nick.nickname)
                 gone = False
             except:

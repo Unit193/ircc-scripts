@@ -34,7 +34,8 @@ opts, args = parser.parse_args()
 
 cachedir = "~/.cache/launchpadlib"
 from launchpadlib.launchpad import Launchpad
-launchpad = Launchpad.login_anonymously('Ubuntu IRC Cloaks Updater Script', 'production', cachedir, version='devel')
+launchpad = Launchpad.login_anonymously('Ubuntu IRC Cloaks Updater Script',
+                'production', cachedir, version='devel')
 
 
 def get_members(team):
@@ -61,7 +62,8 @@ def print_member(member):
     nicks = []
     try:
         for nick in member.irc_nicknames:
-            if 'freenode' or 'ubuntu' in nick.network.lower():
+            network = nick.network.lower()
+            if 'libera' in network:
                 nicks.append(nick.nickname)
         gone = False
     except:
@@ -137,6 +139,6 @@ else:
                     print_super_team(super_teams[super_team])
 
         if not opts.markdown:
-            print('\nTeam scopes: ' + (', '.join(team_scopes.values()) or 'None'))
+            print('\nTeam scopes: ' + (', '.join(list(team_scopes.values())) or 'None'))
         else:
-            print('\n*Team scopes*: ' + (', '.join(team_scopes.values()) or 'None'))
+            print('\n*Team scopes*: ' + (', '.join(list(team_scopes.values())) or 'None'))
